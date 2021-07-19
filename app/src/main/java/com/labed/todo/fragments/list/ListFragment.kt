@@ -18,6 +18,7 @@ import com.labed.todo.databinding.FragmentListBinding
 import com.labed.todo.fragments.SharedViewModel
 import com.labed.todo.fragments.list.adapter.ListAdapter
 import com.labed.todo.utils.hideKeyboard
+import com.labed.todo.utils.observeOnce
 import jp.wasabeef.recyclerview.animators.SlideInUpAnimator
 
 
@@ -42,7 +43,7 @@ class ListFragment : Fragment(), SearchView.OnQueryTextListener {
         setupRecyclerView()
 
         // Observing LiveData
-        toDoViewModel.getAllData.observe(viewLifecycleOwner, Observer { data ->
+        toDoViewModel.getAllData.observe(viewLifecycleOwner, { data ->
             sharedViewModel.checkIfDataBaseEmpty(data)
             adapter.setData(data)
         })
@@ -110,11 +111,11 @@ class ListFragment : Fragment(), SearchView.OnQueryTextListener {
         when (item.itemId) {
             R.id.menu_delete_all -> confirmRemoval()
 
-            R.id.menu_priority_high -> toDoViewModel.sortByHighPriority.observe(this, Observer {
+            R.id.menu_priority_high -> toDoViewModel.sortByHighPriority.observe(this, {
                 adapter.setData(it)
             })
 
-            R.id.menu_priority_low -> toDoViewModel.sortByLowPriority.observe(this, Observer {
+            R.id.menu_priority_low -> toDoViewModel.sortByLowPriority.observe(this, {
                 adapter.setData(it)
             })
         }
@@ -138,7 +139,7 @@ class ListFragment : Fragment(), SearchView.OnQueryTextListener {
     private fun searchTroughDatabase(query: String) {
         val searchQuery = "%$query%"
 
-        toDoViewModel.searchDatabase(searchQuery).observe(this, Observer { list ->
+        toDoViewModel.searchDatabase(searchQuery).observeOnce(viewLifecycleOwner, { list ->
             list?.let {
                 adapter.setData(it)
             }
